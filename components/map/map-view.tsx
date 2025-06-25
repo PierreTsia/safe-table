@@ -2,7 +2,7 @@
 
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { searchInspections } from '@/lib/supabase'
 
 // Fix for default markers in React Leaflet
@@ -112,12 +112,23 @@ export function MapView({ initialQuery }: MapViewProps) {
     return () => clearTimeout(timer)
   }, [])
 
-  // Test handler for hardcoded spatial search (now uses radius)
+  const mapRef = useRef(null)
+
   async function handleTestSpatialSearch() {
-    const lat = location ? location.lat : 48.8566; // Use geoloc if available
-    const lng = location ? location.lng : 2.3522;
+    let lat: number, lng: number;
+    if (mapRef.current) {
+      // @ts-ignore
+      const center = mapRef.current.getCenter();
+      lat = center.lat;
+      lng = center.lng;
+    } else if (location) {
+      lat = location.lat;
+      lng = location.lng;
+    } else {
+      lat = 48.8566;
+      lng = 2.3522;
+    }
     const result = await searchInspections('', 1, 500, 'inspectionDate', 'desc', undefined, { lat, lng, radius })
-    console.log('Spatial search result:', result)
     setResults(result.data)
     setTruncationWarning(result.data.length === 500)
   }
@@ -177,6 +188,7 @@ export function MapView({ initialQuery }: MapViewProps) {
       {/* Map */}
       <div className="h-96 w-full rounded-lg overflow-hidden border">
         <MapContainer
+          ref={mapRef}
           center={location ? [location.lat, location.lng] : [48.8566, 2.3522]}
           zoom={location ? 14 : 10}
           style={{ height: '100%', width: '100%' }}
