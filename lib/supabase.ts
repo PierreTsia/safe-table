@@ -46,17 +46,32 @@ export const searchInspections = async (
   pageSize: number = 12,
   sortBy: 'inspectionDate' | 'businessName' | 'evaluationCode' = 'inspectionDate',
   sortOrder: 'asc' | 'desc' = 'desc',
-  businessType?: string
+  businessType?: string,
+  spatial?: { lat: number; lng: number; radius: number }
 ) => {
   // Split query into words for better matching
   const terms = query.toLowerCase().split(/\s+/).filter(Boolean)
-  
-  if (terms.length === 0) return { data: [], count: 0 }
+  if (terms.length === 0 && !spatial) return { data: [], count: 0 }
 
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
 
-  // Build base query
+  // If spatial search, use the RPC
+  if (spatial) {
+    // Call the Postgres function findInspectionsWithinRadius
+    const rpcQuery = supabase
+      .rpc('find_inspections_within_radius', {
+        center_lat: spatial.lat,
+        center_lng: spatial.lng,
+        radius_km: spatial.radius
+      })
+
+    const { data, error } = await rpcQuery
+    if (error) throw error
+    return { data: data || [], count: data ? data.length : 0 }
+  }
+
+  // Build base query (non-spatial)
   let countQuery = supabase
     .from('inspections')
     .select('*', { count: 'exact', head: true })
