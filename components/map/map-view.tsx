@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useState, useRef } from 'react'
 import { searchInspections } from '@/lib/supabase'
+import { Button } from '@/components/ui/button'
 
 // Fix for default markers in React Leaflet
 import L from 'leaflet'
@@ -114,10 +115,18 @@ export function MapView({ initialQuery }: MapViewProps) {
 
   const mapRef = useRef(null)
 
+  const initialCenter = useRef<[number, number]>(location ? [location.lat, location.lng] : [48.8566, 2.3522]);
+
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   async function handleTestSpatialSearch() {
     let lat: number, lng: number;
     if (mapRef.current) {
-      // @ts-ignore
+      // @ts-expect-error Leaflet types are not properly defined
       const center = mapRef.current.getCenter();
       lat = center.lat;
       lng = center.lng;
@@ -131,6 +140,14 @@ export function MapView({ initialQuery }: MapViewProps) {
     const result = await searchInspections('', 1, 500, 'inspectionDate', 'desc', undefined, { lat, lng, radius })
     setResults(result.data)
     setTruncationWarning(result.data.length === 500)
+    // Fit bounds to results
+    if (mapRef.current && result.data.length > 0) {
+      const group = L.featureGroup(
+        result.data.map(item => L.marker([item.latitude!, item.longitude!]))
+      );
+            // @ts-expect-error Leaflet types are not properly defined
+      mapRef.current.fitBounds(group.getBounds(), { maxZoom: 16, padding: [40, 40] });
+    }
   }
 
   return (
@@ -177,20 +194,20 @@ export function MapView({ initialQuery }: MapViewProps) {
         </div>
       )}
 
-      <button
-        className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/80"
+      <Button
         onClick={handleTestSpatialSearch}
-        type="button"
+        className="mb-2"
+        variant="default"
       >
-        Tester la recherche géolocalisée ({radius}km autour de Paris)
-      </button>
+        Tester la recherche géolocalisée ({radius}km autour du centre de la carte)
+      </Button>
 
       {/* Map */}
       <div className="h-96 w-full rounded-lg overflow-hidden border">
         <MapContainer
           ref={mapRef}
-          center={location ? [location.lat, location.lng] : [48.8566, 2.3522]}
-          zoom={location ? 14 : 10}
+          center={initialCenter.current}
+          zoom={location ? 16 : 10}
           style={{ height: '100%', width: '100%' }}
           className="z-0"
         >
@@ -201,31 +218,9 @@ export function MapView({ initialQuery }: MapViewProps) {
           
           {/* User location marker */}
           {location && (
-            <> 
             <Marker position={[location.lat, location.lng]}>
               <Popup>
-                <span className="text-sm">
-                    Votre position
-                </span>
-              </Popup>
-            </Marker>
-            <Marker position={[48.8566, 2.3522]}>
-              <Popup>
-                <span className="text-sm">
-                    Paris
-                </span>
-              </Popup>
-            </Marker>
-            </>
-          )}
-
-          {/* Default Paris marker if no user location */}
-          {!location && (
-            <Marker position={[48.8566, 2.3522]}>
-              <Popup>
-              <span className="text-sm">
-                    Paris
-                </span>
+                <span className="text-sm">Votre position</span>
               </Popup>
             </Marker>
           )}
@@ -255,8 +250,10 @@ export function MapView({ initialQuery }: MapViewProps) {
             ))
           }
 
-          {/* Update map center when location changes */}
-          <MapUpdater center={location ? [location.lat, location.lng] : [48.8566, 2.3522]} zoom={location ? 14 : 10} />
+          {/* Only show MapUpdater on initial mount, and only center on Paris if no user location */}
+          {!hasMounted && (
+            <MapUpdater center={location ? [location.lat, location.lng] : [48.8566, 2.3522]} zoom={location ? 16 : 10} />
+          )}
         </MapContainer>
       </div>
     </div>
