@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -24,6 +25,12 @@ export default function Home() {
             Save and see your changes instantly.
           </li>
         </ol>
+        <Button>Click me</Button>
+        <Button variant="outline">Click me</Button>
+        <Button variant="ghost">Click me</Button>
+        <Button variant="link">Click me</Button>
+        <Button variant="destructive">Click me</Button>
+        <Button variant="secondary">Click me</Button>
 
         <div className="flex gap-4 items-center flex-col sm:flex-row">
           <a
