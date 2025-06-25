@@ -3,6 +3,7 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useState } from 'react'
+import { searchInspections } from '@/lib/supabase'
 
 // Fix for default markers in React Leaflet
 import L from 'leaflet'
@@ -73,6 +74,10 @@ export function MapView({ initialQuery }: MapViewProps) {
   const mapCenter: [number, number] = location ? [location.lat, location.lng] : defaultCenter
   const mapZoom = location ? 14 : 10
 
+  // Radius state (capped)
+  const [radius, setRadius] = useState(5) // default 5km
+  const MAX_RADIUS = 10
+
   // Ensure map renders properly in Next.js
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -81,8 +86,33 @@ export function MapView({ initialQuery }: MapViewProps) {
     return () => clearTimeout(timer)
   }, [])
 
+  // Test handler for hardcoded spatial search (now uses radius)
+  async function handleTestSpatialSearch() {
+    const lat = 48.8566 // Paris
+    const lng = 2.3522
+    const result = await searchInspections('', 1, 10, 'inspectionDate', 'desc', undefined, { lat, lng, radius })
+     
+    console.log('Spatial search result:', result)
+    alert(`Spatial search: ${result.data.length} results for radius ${radius}km`)
+  }
+
   return (
     <div className="space-y-4">
+      {/* Radius slider */}
+      <div className="flex items-center gap-4">
+        <label htmlFor="radius-slider" className="text-sm font-medium">Rayon de recherche :</label>
+        <input
+          id="radius-slider"
+          type="range"
+          min={1}
+          max={MAX_RADIUS}
+          value={radius}
+          onChange={e => setRadius(Number(e.target.value))}
+          className="w-40"
+        />
+        <span className="text-sm tabular-nums">{radius} km</span>
+        <span className="text-xs text-muted-foreground">(max {MAX_RADIUS} km)</span>
+      </div>
       {/* Location status */}
       {loading && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -102,6 +132,14 @@ export function MapView({ initialQuery }: MapViewProps) {
           Votre position: {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
         </div>
       )}
+
+      <button
+        className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/80"
+        onClick={handleTestSpatialSearch}
+        type="button"
+      >
+        Tester la recherche géolocalisée ({radius}km autour de Paris)
+      </button>
 
       {/* Map */}
       <div className="h-96 w-full rounded-lg overflow-hidden border">
