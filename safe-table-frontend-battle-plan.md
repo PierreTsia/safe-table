@@ -1,252 +1,162 @@
 # 🍽️ SafeTable Frontend - Food Safety Explorer
 
-_Making French food safety data accessible and searchable for everyone_
+_Making French food safety data accessible and searchable for everyone - Responding to current food safety concerns_
 
-## 🎯 Core Objectives
+## 🎯 Revised Core Objectives (4-Day Plan)
 
-1. **SEO Excellence**
-   - Outrank government websites for food safety searches
-   - Become the go-to platform for restaurant safety information
-   - Drive organic traffic through strategic content
+1. **Simple, Fast Search**
+   - Basic text search for location and business names
+   - Clear display of safety ratings
+   - Focus on recent inspections and high-risk establishments
 
-2. **User Experience**
-   - Instant search results (< 300ms response time)
-   - Mobile-first design
-   - Accessibility compliance (WCAG 2.1)
+2. **Trust & Transparency**
+   - Clear presentation of official ratings
+   - Highlight establishments handling meat products (agreement numbers)
+   - Last inspection dates prominently displayed
 
-3. **Trust Building**
-   - Clear data sources and timestamps
-   - Official government data references
-   - Transparent methodology
+3. **SEO Focus**
+   - Optimize for current food safety crisis keywords
+   - Clear, informative landing page
+   - Region-based content
 
-## 🏗️ Technical Architecture
+## 🏗️ Simplified Technical Architecture
 
 ### Next.js App Router Structure
 
 ```
 app/
-├── (marketing)/
-│   ├── page.tsx                 # Landing page
-│   ├── about/                   # About us, methodology
-│   └── blog/                    # SEO content, food safety articles
-├── (auth)/
-│   └── login/                   # Optional user features
+├── page.tsx                    # Landing page with search
 ├── search/
-│   ├── page.tsx                # Main search interface
-│   └── [siret]/                # Business details page
-├── regions/
-│   └── [region]/               # Region-specific pages
-└── api/                        # API routes for SSR
+│   ├── page.tsx               # Search results
+│   └── [siret]/               # Business details
+└── api/                       # API routes
 ```
 
 ### Tech Stack
 
 - **Framework**: Next.js 14 with App Router
 - **Styling**: Tailwind CSS + Shadcn/ui
-- **Maps**: Mapbox GL JS
-- **State**: Zustand + React Query
-- **Analytics**: Vercel Analytics + PostHog
-- **Database**: Supabase (direct client integration)
+- **Database**: Supabase (direct integration)
+- **Analytics**: Vercel Analytics
 
-## 📱 Key Features & Pages
+## 📱 Core Features
 
 ### 1. Landing Page (/)
 
-- Hero section with search bar
-- Key statistics and trust indicators
-- Featured regions and business types
-- Latest inspections
-- SEO-optimized content blocks
+- Prominent search bar
+- Recent high-risk inspections
+- Quick region filters
+- Current food safety context
 
 ### 2. Search Interface (/search)
 
-- **Instant Search**
-  - Address autocomplete
-  - Business name suggestions
-  - Filter combinations
-- **Map View**
-  - Color-coded markers
-  - Clustering for dense areas
-  - Mobile-friendly controls
-- **List View**
-  - Infinite scroll
-  - Sort options
-  - Quick filters
+- **Simple Search**
+  - Location (city/postal code)
+  - Business name
+  - Single search bar approach
+  
+- **Essential Filters**
+  - Risk level (1-4 scale)
+  - Has agreement number (meat handlers)
+  - Business type
+
+- **Results Display**
+  - Risk level (color-coded)
+  - Business name
+  - Agreement number (if exists)
+  - Last inspection date
+  - Address
+  - Business type
 
 ### 3. Business Profile (/search/[siret])
 
-- Inspection history
-- Detailed ratings
-- Location and contact
-- Similar businesses nearby
-- Share functionality
-
-### 4. Region Pages (/regions/[region])
-
-- Regional statistics
-- Top-rated establishments
-- Recent inspections
-- Local trends
+- Full inspection details
+- Risk level explanation
+- Location info
+- Agreement number details (if applicable)
 
 ## 🔍 SEO Strategy
 
-### 1. Technical SEO
+### Priority Keywords
 
-- Server-side rendering for all pages
-- Dynamic metadata
-- Structured data (Schema.org)
-- Sitemap generation
-- robots.txt optimization
+- "sécurité alimentaire restaurant"
+- "contrôle sanitaire viande"
+- "inspection hygiène restaurant [city]"
+- "risque alimentaire [region]"
 
-### 2. Content Strategy
+## 🚀 4-Day Development Plan
 
-- Region-specific landing pages
-- Business type guides
-- Food safety educational content
-- Regular blog posts about:
-  - Food safety tips
-  - Industry news
-  - Data analysis and trends
+### Day 1: Core Search
+- Next.js + Supabase setup
+- Basic search implementation
+- Results list view
 
-### 3. URL Structure
-
-- Clean, semantic URLs
-- Region-based hierarchy
-- Business-friendly URLs
-- SEO-optimized slugs
-
-### 4. Keywords Focus
-
-- "contrôle sanitaire restaurant [city]"
-- "hygiène restaurant [region]"
-- "sécurité alimentaire [business type]"
-- "note sanitaire [business name]"
-
-## 💨 Performance Optimization
-
-### 1. Initial Load
-
-- Route prefetching
-- Image optimization
-- Font optimization
-- Critical CSS extraction
-
-### 2. Runtime Performance
-
-- Debounced search
-- Virtualized lists
-- Progressive loading
-- Lazy-loaded maps
-
-### 3. Caching Strategy
-
-- Static page caching
-- Incremental Static Regeneration
-- SWR for real-time data
-- Service Worker for offline
-
-## 📈 Analytics & Monitoring
-
-### 1. User Behavior
-
-- Search patterns
-- Popular regions
-- Device usage
-- User flows
-
-### 2. Performance Metrics
-
-- Core Web Vitals
-- Time to first result
-- Map render time
-- API response times
-
-### 3. SEO Metrics
-
-- Organic traffic
-- Search rankings
-- Click-through rates
-- Bounce rates
-
-## 🚀 Development Phases
-
-### Phase 1: Core Search (1 week)
-
-- Basic search interface
-- Map integration
-- Essential filters
-- Mobile responsiveness
-
-### Phase 2: SEO Foundation (1 week)
-
+### Day 2: Landing & SEO
 - Landing page
-- Region pages
-- Business profiles
-- Metadata optimization
+- SEO optimization
+- Basic styling
 
-### Phase 3: Performance (1 week)
+### Day 3: Enhanced Search
+- Filter implementation
+- Business detail pages
+- Mobile optimization
 
-- Caching implementation
-- Load time optimization
-- Image optimization
-- Analytics setup
+### Day 4: Polish & Launch
+- Performance optimization
+- Final testing
+- Deploy & monitor
 
-### Phase 4: Enhanced Features (1 week)
+## 📊 Data Structure
 
-- Advanced filters
-- Saved searches
-- Share functionality
-- Print/export options
+### Key Fields Focus
+```sql
+- businessName: Main identifier
+- siret: Unique business ID
+- evaluationCode: 
+  1: "Très satisfaisant"
+  2: "Satisfaisant"
+  3: "À améliorer"
+  4: "À corriger de manière urgente"
+- riskScore: 1-4 scale
+- agreement: FR XX.XXX.XXX CE format (for meat handlers)
+- inspectionDate: Last inspection timestamp
+- location fields: address, city, postalCode, region
+```
 
-## 🎨 Design Principles
+## 🎨 MVP Design Principles
 
-### 1. Visual Hierarchy
+1. **Clarity First**
+   - Clear risk level display
+   - Simple, focused search
+   - Essential information only
 
-- Clear risk levels
-- Intuitive navigation
-- Consistent color coding
-- Clean typography
+2. **Mobile Ready**
+   - Single column layout
+   - Touch-friendly filters
+   - Readable on small screens
 
-### 2. Mobile-First
-
-- Touch-friendly controls
-- Responsive maps
-- Bottom sheets for filters
-- Swipe gestures
-
-### 3. Accessibility
-
-- ARIA labels
-- Keyboard navigation
-- High contrast mode
-- Screen reader support
+3. **Performance**
+   - Minimal initial load
+   - Progressive enhancement
+   - Efficient search queries
 
 ## 🔄 Next Steps
 
-1. **Setup & Configuration**
-   - Next.js project setup
-   - Supabase client integration
-   - CI/CD pipeline
-   - Development environment
+1. **Initial Setup**
+   - Repository creation
+   - Next.js configuration
+   - Supabase connection
 
 2. **Core Development**
-   - Landing page implementation
-   - Search interface development
-   - Map integration
-   - Basic styling
+   - Search implementation
+   - Basic UI components
+   - Results display
 
-3. **SEO Implementation**
-   - Metadata setup
-   - Content structure
-   - URL optimization
-   - Analytics configuration
-
-4. **Testing & Optimization**
+3. **Launch Preparation**
    - Performance testing
-   - SEO audits
-   - User testing
-   - Mobile optimization
+   - SEO verification
+   - Analytics setup
 
 ---
 
-_Building the most user-friendly and SEO-optimized food safety platform in France._
+_Providing transparent food safety information when it matters most._
