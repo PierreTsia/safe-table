@@ -38,7 +38,7 @@ export function SearchBar({ className }: SearchBarProps) {
               <FormItem className="flex-1">
                 <FormControl>
                   <Input
-                    placeholder="Rechercher un établissement..."
+                    placeholder="Recherchez par code postal, nom de ville ou d'établissement"
                     {...field}
                     onChange={(e) => {
                       field.onChange(e)
