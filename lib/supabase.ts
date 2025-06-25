@@ -34,12 +34,19 @@ export const getEvaluationText = (code: 1 | 2 | 3 | 4): string => {
   return EVALUATION_CODES[code]
 }
 
-// Helper function for search
+// Search inspections by business name or location
 export const searchInspections = async (query: string) => {
+  // Split query into words for better matching
+  const terms = query.toLowerCase().split(/\s+/).filter(Boolean)
+  
+  if (terms.length === 0) return []
+
   const { data, error } = await supabase
     .from('inspections')
     .select()
-    .or(`businessName.ilike.%${query}%,city.ilike.%${query}%`)
+    .or(terms.map(term => 
+      `businessName.ilike.%${term}%,city.ilike.%${term}%,postalCode.ilike.%${term}%`
+    ).join(','))
     .order('inspectionDate', { ascending: false })
     .limit(50)
 
