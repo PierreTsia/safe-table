@@ -5,6 +5,10 @@ import 'leaflet/dist/leaflet.css'
 import { useEffect, useState, useRef } from 'react'
 import { searchInspections } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
+import { AlertTriangle } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { LocateIcon, MapPinIcon } from 'lucide-react'
 
 // Fix for default markers in React Leaflet
 import L from 'leaflet'
@@ -163,13 +167,24 @@ export function MapView() {
     }
   }
 
+  function handleRecenterToUser() {
+    if (location && mapRef.current) {
+      // @ts-expect-error Leaflet types
+      mapRef.current.setView([location.lat, location.lng], 16);
+    }
+  }
+
   return (
     <div className="space-y-4">
       {/* Truncation warning */}
       {truncationWarning && (
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-3 rounded">
-          Affichage limité aux 500 premiers résultats. Veuillez réduire le rayon ou affiner votre recherche.
-        </div>
+        <Alert variant="default" className="mb-2 text-yellow-500 bg-yellow-500/10 border-yellow-500">
+          <AlertTriangle className="h-5 w-5" />
+          <AlertTitle>Affichage limité</AlertTitle>
+          <AlertDescription className="text-yellow-500">
+            Affichage limité aux 500 premiers résultats. Veuillez réduire le rayon ou affiner votre recherche.
+          </AlertDescription>
+        </Alert>
       )}
       {/* Radius slider */}
       <div className="flex items-center gap-4">
@@ -207,13 +222,30 @@ export function MapView() {
         </div>
       )}
 
-      <Button
-        onClick={handleTestSpatialSearch}
-        className="mb-2"
-        variant="default"
-      >
-        Tester la recherche géolocalisée ({radius}km autour du centre de la carte)
-      </Button>
+      <div className="flex gap-2 mb-2">
+        {/* Recenter to user location */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button size="icon" variant="outline" onClick={handleRecenterToUser}>
+              <LocateIcon className="w-5 h-5" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent side="top" className="text-sm max-w-xs">
+            Recentrer la carte sur ma position
+          </PopoverContent>
+        </Popover>
+        {/* Search at current map center */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button size="icon" variant="outline" onClick={handleTestSpatialSearch}>
+              <MapPinIcon className="w-5 h-5" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent side="top" className="text-sm max-w-xs">
+            Lancer la recherche autour du centre de la carte
+          </PopoverContent>
+        </Popover>
+      </div>
 
       {/* Map */}
       <div className="h-96 w-full rounded-lg overflow-hidden border">
