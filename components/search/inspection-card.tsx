@@ -1,3 +1,6 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+
 interface Inspection {
   id: number
   businessName: string
@@ -11,31 +14,34 @@ interface InspectionCardProps {
   onClick?: () => void
 }
 
+const evaluationMap = {
+  1: { variant: 'success' as const, text: 'Très satisfaisant' },
+  2: { variant: 'satisfactory' as const, text: 'Satisfaisant' },
+  3: { variant: 'warning' as const, text: 'À améliorer' },
+  4: { variant: 'destructive' as const, text: 'À corriger de manière urgente' },
+}
+
 export function InspectionCard({ inspection, onClick }: InspectionCardProps) {
+  const evaluation = evaluationMap[inspection.evaluationCode as keyof typeof evaluationMap] 
+    || evaluationMap[1] // fallback to success
+
   return (
-    <div 
-      className="border rounded-lg p-4 hover:border-primary transition-colors cursor-pointer"
+    <Card 
+      className="hover:border-primary transition-colors cursor-pointer"
       onClick={onClick}
     >
-      <p className="font-medium">{inspection.businessName}</p>
-      <p className="text-sm text-muted-foreground">{inspection.city}</p>
-      <div className="flex items-center gap-2 mt-2">
-        <span className={`w-2 h-2 rounded-full ${
-          inspection.evaluationCode === 4 ? 'bg-red-500' :
-          inspection.evaluationCode === 3 ? 'bg-orange-500' :
-          inspection.evaluationCode === 2 ? 'bg-yellow-500' :
-          'bg-green-500'
-        }`} />
-        <span className="text-sm">
-          {inspection.evaluationCode === 4 ? 'À corriger de manière urgente' :
-           inspection.evaluationCode === 3 ? 'À améliorer' :
-           inspection.evaluationCode === 2 ? 'Satisfaisant' :
-           'Très satisfaisant'}
-        </span>
-      </div>
-      <p className="text-sm text-muted-foreground mt-2">
-        Inspecté le {new Date(inspection.inspectionDate).toLocaleDateString('fr-FR')}
-      </p>
-    </div>
+      <CardHeader>
+        <CardTitle className="text-base">{inspection.businessName}</CardTitle>
+        <p className="text-sm text-muted-foreground">{inspection.city}</p>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <Badge variant={evaluation.variant}>
+          {evaluation.text}
+        </Badge>
+        <p className="text-sm text-muted-foreground">
+          Inspecté le {new Date(inspection.inspectionDate).toLocaleDateString('fr-FR')}
+        </p>
+      </CardContent>
+    </Card>
   )
 } 
