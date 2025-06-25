@@ -34,24 +34,44 @@ export const getEvaluationText = (code: 1 | 2 | 3 | 4): string => {
   return EVALUATION_CODES[code]
 }
 
-// Search inspections by business name or location
-export const searchInspections = async (query: string) => {
+// Search inspections with pagination and sorting
+export const searchInspections = async (
+  query: string, 
+  page: number = 1, 
+  pageSize: number = 12,
+  sortBy: 'inspectionDate' | 'businessName' | 'evaluationCode' = 'inspectionDate',
+  sortOrder: 'asc' | 'desc' = 'desc'
+) => {
   // Split query into words for better matching
   const terms = query.toLowerCase().split(/\s+/).filter(Boolean)
   
-  if (terms.length === 0) return []
+  if (terms.length === 0) return { data: [], count: 0 }
 
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+
+  // First get the count
+  const { count, error: countError } = await supabase
+    .from('inspections')
+    .select('*', { count: 'exact', head: true })
+    .or(terms.map(term => 
+      `businessName.ilike.%${term}%,city.ilike.%${term}%,postalCode.ilike.%${term}%`
+    ).join(','))
+
+  if (countError) throw countError
+
+  // Then get the paginated data
   const { data, error } = await supabase
     .from('inspections')
     .select()
     .or(terms.map(term => 
       `businessName.ilike.%${term}%,city.ilike.%${term}%,postalCode.ilike.%${term}%`
     ).join(','))
-    .order('inspectionDate', { ascending: false })
-    .limit(50)
+    .order(sortBy, { ascending: sortOrder === 'asc' })
+    .range(from, to)
 
   if (error) throw error
-  return data
+  return { data: data || [], count: count || 0 }
 }
 
 // Get inspections by evaluation code
