@@ -222,8 +222,20 @@ export function MapView() {
         </div>
       )}
 
-      <div className="flex gap-2 mb-2">
+      <div className="flex gap-2 mb-2 flex justify-between w-full">
         {/* Recenter to user location */}
+
+        {/* Search at current map center */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button size="icon" variant="default" className="bg-green-500 text-white" onClick={handleTestSpatialSearch}>
+              <MapPinIcon className="w-5 h-5" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent side="top" className="text-sm max-w-xs">
+            Lancer la recherche autour du centre de la carte
+          </PopoverContent>
+        </Popover>
         <Popover>
           <PopoverTrigger asChild>
             <Button size="icon" variant="outline" onClick={handleRecenterToUser}>
@@ -232,17 +244,6 @@ export function MapView() {
           </PopoverTrigger>
           <PopoverContent side="top" className="text-sm max-w-xs">
             Recentrer la carte sur ma position
-          </PopoverContent>
-        </Popover>
-        {/* Search at current map center */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button size="icon" variant="outline" onClick={handleTestSpatialSearch}>
-              <MapPinIcon className="w-5 h-5" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent side="top" className="text-sm max-w-xs">
-            Lancer la recherche autour du centre de la carte
           </PopoverContent>
         </Popover>
       </div>
