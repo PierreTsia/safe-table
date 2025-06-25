@@ -83,27 +83,29 @@ function MapUpdater({ center, zoom }: { center: [number, number], zoom: number }
   return null
 }
 
-interface MapViewProps {
-  initialQuery: string
+interface InspectionResult {
+  id: number;
+  latitude: number;
+  longitude: number;
+  evaluationCode: number;
+  businessName: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  evaluation?: string;
+  // add other fields as needed
 }
 
-export function MapView({ initialQuery }: MapViewProps) {
+export function MapView() {
   const { location, loading, error } = useGeolocation()
-  
   // Default to Paris if no location available
-  const defaultCenter: [number, number] = [48.8566, 2.3522]
-  const mapCenter: [number, number] = location ? [location.lat, location.lng] : defaultCenter
-  const mapZoom = location ? 14 : 10
-
   // Radius state (capped)
   const [radius, setRadius] = useState(5) // default 5km
   const MAX_RADIUS = 10
-
   // Truncation warning state
   const [truncationWarning, setTruncationWarning] = useState(false)
-
   // Results state
-  const [results, setResults] = useState<any[]>([])
+  const [results, setResults] = useState<InspectionResult[]>([])
 
   // Ensure map renders properly in Next.js
   useEffect(() => {
@@ -138,7 +140,18 @@ export function MapView({ initialQuery }: MapViewProps) {
       lng = 2.3522;
     }
     const result = await searchInspections('', 1, 500, 'inspectionDate', 'desc', undefined, { lat, lng, radius })
-    setResults(result.data)
+    const results = result.data.map(item => ({
+      id: item.id,
+      latitude: item.latitude!,
+      longitude: item.longitude!,
+      evaluationCode: item.evaluationCode,
+      businessName: item.businessName,
+      address: item.address,
+      city: item.city,
+      postalCode: item.postalCode,
+      evaluation: item.evaluation,
+    }))
+    setResults(results)
     setTruncationWarning(result.data.length === 500)
     // Fit bounds to results
     if (mapRef.current && result.data.length > 0) {

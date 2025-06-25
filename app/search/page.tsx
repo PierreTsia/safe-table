@@ -67,7 +67,7 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
         </TabsContent>
 
         <TabsContent value="map" className="mt-0">
-          <MapView initialQuery={query} />
+          <MapView  />
      
         </TabsContent>
       </Tabs>
