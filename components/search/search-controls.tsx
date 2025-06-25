@@ -7,15 +7,83 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu'
-import { ChevronUpIcon, ChevronDownIcon, ChevronDownIcon as DropdownIcon } from 'lucide-react'
+import { ChevronUpIcon, ChevronDownIcon, ChevronDownIcon as DropdownIcon, X } from 'lucide-react'
 
 interface SearchControlsProps {
   totalCount: number
   pageSize: number
   sortBy: 'inspectionDate' | 'businessName' | 'evaluationCode'
   sortOrder: 'asc' | 'desc'
+  businessType?: string
   onPageSizeChange: (size: number) => void
   onSortChange: (sort: 'inspectionDate' | 'businessName' | 'evaluationCode', order: 'asc' | 'desc') => void
+  onBusinessTypeChange: (businessType: string | undefined) => void
+}
+
+function BusinessTypeFilter({
+  currentBusinessType,
+  onBusinessTypeChange
+}: {
+  currentBusinessType?: string
+  onBusinessTypeChange: (businessType: string | undefined) => void
+}) {
+  const businessTypes = [
+    'Restaurants',
+    'Boulangerie-Pâtisserie',
+    'Restauration collective',
+    'Boucherie-Charcuterie',
+    'Producteurs fermiers',
+    'Libre service',
+    'Transformation de lait ou produits laitiers',
+    'Traiteur',
+    'Rayon pain/viennoiserie/pâtisserie',
+    'Alimentation générale'
+  ]
+
+  return (
+    <div className="flex items-center gap-2">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 px-3 text-xs"
+          >
+            {currentBusinessType || 'Tous les types'}
+            <DropdownIcon className="ml-1 h-3 w-3" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="min-w-[200px]">
+          <DropdownMenuItem
+            onClick={() => onBusinessTypeChange(undefined)}
+            className="cursor-pointer"
+          >
+            Tous les types
+          </DropdownMenuItem>
+          {businessTypes.map((type) => (
+            <DropdownMenuItem
+              key={type}
+              onClick={() => onBusinessTypeChange(type)}
+              className="cursor-pointer"
+            >
+              {type}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      
+      {currentBusinessType && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 px-2"
+          onClick={() => onBusinessTypeChange(undefined)}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      )}
+    </div>
+  )
 }
 
 function PageSizeSelector({ 
@@ -115,8 +183,10 @@ export function SearchControls({
   pageSize,
   sortBy,
   sortOrder,
+  businessType,
   onPageSizeChange,
-  onSortChange
+  onSortChange,
+  onBusinessTypeChange
 }: SearchControlsProps) {
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -124,6 +194,13 @@ export function SearchControls({
         {totalCount} résultat{totalCount > 1 ? 's' : ''} trouvé{totalCount > 1 ? 's' : ''}
       </p>
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Type:</span>
+          <BusinessTypeFilter 
+            currentBusinessType={businessType}
+            onBusinessTypeChange={onBusinessTypeChange}
+          />
+        </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Afficher:</span>
           <PageSizeSelector 

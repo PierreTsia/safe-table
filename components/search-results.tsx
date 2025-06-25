@@ -2,28 +2,20 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { searchInspections } from '@/lib/supabase'
+import { searchInspections, InspectionDisplay } from '@/lib/supabase'
 import { InspectionCard } from '@/components/search/inspection-card'
 import { SearchControls } from '@/components/search/search-controls'
 import { SearchPagination } from '@/components/search/search-pagination'
 import { SearchSkeleton } from '@/components/search/search-skeleton'
 
-interface Inspection {
-  id: number
-  businessName: string
-  city: string
-  evaluationCode: number
-  inspectionDate: string
-}
-
 interface SearchResultsProps {
   initialQuery: string
 }
 
-function useSearchResults(query: string, page: number, pageSize: number, sortBy: string, sortOrder: string) {
+function useSearchResults(query: string, page: number, pageSize: number, sortBy: string, sortOrder: string, businessType?: string) {
   return useQuery({
-    queryKey: ['search', query, page, pageSize, sortBy, sortOrder],
-    queryFn: () => searchInspections(query, page, pageSize, sortBy as 'inspectionDate' | 'businessName' | 'evaluationCode', sortOrder as 'asc' | 'desc'),
+    queryKey: ['search', query, page, pageSize, sortBy, sortOrder, businessType],
+    queryFn: () => searchInspections(query, page, pageSize, sortBy as 'inspectionDate' | 'businessName' | 'evaluationCode', sortOrder as 'asc' | 'desc', businessType),
     enabled: !!query,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
@@ -39,13 +31,15 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
   const pageSize = parseInt(searchParams.get('size') || '12', 10)
   const sortBy = (searchParams.get('sort') as 'inspectionDate' | 'businessName' | 'evaluationCode') || 'inspectionDate'
   const sortOrder = (searchParams.get('order') as 'asc' | 'desc') || 'desc'
+  const businessType = searchParams.get('type') || undefined
   
   const { data, isLoading, error, isPending, isFetching } = useSearchResults(
     initialQuery, 
     currentPage, 
     pageSize, 
     sortBy, 
-    sortOrder
+    sortOrder,
+    businessType
   )
 
   const results = data?.data || []
@@ -55,7 +49,11 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
   const updateUrl = (params: Record<string, string>) => {
     const newSearchParams = new URLSearchParams(searchParams)
     Object.entries(params).forEach(([key, value]) => {
-      newSearchParams.set(key, value)
+      if (value) {
+        newSearchParams.set(key, value)
+      } else {
+        newSearchParams.delete(key)
+      }
     })
     router.push(`/search?${newSearchParams.toString()}`)
   }
@@ -72,7 +70,11 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
     updateUrl({ size: newPageSize.toString(), page: '1' })
   }
 
-  const handleInspectionClick = (inspection: Inspection) => {
+  const handleBusinessTypeChange = (newBusinessType: string | undefined) => {
+    updateUrl({ type: newBusinessType || '', page: '1' })
+  }
+
+  const handleInspectionClick = (inspection: InspectionDisplay) => {
     // TODO: Navigate to individual inspection page
     console.log('Clicked inspection:', inspection)
   }
@@ -85,8 +87,8 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
     
     adjacentPages.forEach(page => {
       queryClient.prefetchQuery({
-        queryKey: ['search', initialQuery, page, pageSize, sortBy, sortOrder],
-        queryFn: () => searchInspections(initialQuery, page, pageSize, sortBy, sortOrder),
+        queryKey: ['search', initialQuery, page, pageSize, sortBy, sortOrder, businessType],
+        queryFn: () => searchInspections(initialQuery, page, pageSize, sortBy, sortOrder, businessType),
         staleTime: 5 * 60 * 1000,
       })
     })
@@ -116,6 +118,11 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
       <div className="text-center py-8">
         <p className="text-lg text-muted-foreground">
           Aucun résultat trouvé pour &quot;{initialQuery}&quot;
+          {businessType && (
+            <span className="block text-sm mt-2">
+              dans la catégorie &quot;{businessType}&quot;
+            </span>
+          )}
         </p>
       </div>
     )
@@ -129,8 +136,10 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
         pageSize={pageSize}
         sortBy={sortBy}
         sortOrder={sortOrder}
+        businessType={businessType}
         onPageSizeChange={handlePageSizeChange}
         onSortChange={handleSortChange}
+        onBusinessTypeChange={handleBusinessTypeChange}
       />
 
       {/* Results grid with loading indicator */}

@@ -21,6 +21,11 @@ export type Inspection = Database['public']['Tables']['inspections']['Row']
 export type InspectionInsert = Database['public']['Tables']['inspections']['Insert']
 export type InspectionUpdate = Database['public']['Tables']['inspections']['Update']
 
+// Shared simplified inspection type for UI components
+export type InspectionDisplay = Pick<Inspection, 
+  'id' | 'businessName' | 'businessType' | 'address' | 'city' | 'evaluationCode' | 'inspectionDate'
+>
+
 // Evaluation code mapping
 export const EVALUATION_CODES = {
   1: "Très satisfaisant",
@@ -40,7 +45,8 @@ export const searchInspections = async (
   page: number = 1, 
   pageSize: number = 12,
   sortBy: 'inspectionDate' | 'businessName' | 'evaluationCode' = 'inspectionDate',
-  sortOrder: 'asc' | 'desc' = 'desc'
+  sortOrder: 'asc' | 'desc' = 'desc',
+  businessType?: string
 ) => {
   // Split query into words for better matching
   const terms = query.toLowerCase().split(/\s+/).filter(Boolean)
@@ -50,23 +56,33 @@ export const searchInspections = async (
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
 
-  // First get the count
-  const { count, error: countError } = await supabase
+  // Build base query
+  let countQuery = supabase
     .from('inspections')
     .select('*', { count: 'exact', head: true })
     .or(terms.map(term => 
       `businessName.ilike.%${term}%,city.ilike.%${term}%,postalCode.ilike.%${term}%`
     ).join(','))
 
-  if (countError) throw countError
-
-  // Then get the paginated data
-  const { data, error } = await supabase
+  let dataQuery = supabase
     .from('inspections')
     .select()
     .or(terms.map(term => 
       `businessName.ilike.%${term}%,city.ilike.%${term}%,postalCode.ilike.%${term}%`
     ).join(','))
+
+  // Add business type filter if provided
+  if (businessType) {
+    countQuery = countQuery.eq('businessType', businessType)
+    dataQuery = dataQuery.eq('businessType', businessType)
+  }
+
+  // Get count
+  const { count, error: countError } = await countQuery
+  if (countError) throw countError
+
+  // Get paginated data
+  const { data, error } = await dataQuery
     .order(sortBy, { ascending: sortOrder === 'asc' })
     .range(from, to)
 
