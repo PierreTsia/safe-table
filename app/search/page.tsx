@@ -4,7 +4,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { SearchBar } from '@/components/ui/search-bar'
 import { SearchResults } from '@/components/search-results'
-import { MapView } from '@/components/map/map-view'
+import dynamic from 'next/dynamic'
+const MapView = dynamic(() => import('@/components/map/map-view').then(mod => mod.MapView), { ssr: false })
 import { use, useEffect, useState } from 'react'
 import { Map, List } from 'lucide-react'
 
@@ -67,6 +68,7 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
 
         <TabsContent value="map" className="mt-0">
           <MapView initialQuery={query} />
+     
         </TabsContent>
       </Tabs>
     </div>
