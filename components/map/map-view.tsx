@@ -100,7 +100,7 @@ interface InspectionResult {
   // add other fields as needed
 }
 
-export function MapView() {
+export function MapView({ initialQuery }: { initialQuery: string }) {
   const { location, loading, error } = useGeolocation()
   // Default to Paris if no location available
   // Radius state (capped)
@@ -120,6 +120,13 @@ export function MapView() {
   }, [])
 
   const mapRef = useRef(null)
+
+  const getInitialCenter = () => {
+    if (initialQuery) {
+      return [48.8566, 2.3522] // todo: get initial center from initialQuery
+    }
+    return location ? [location.lat, location.lng] : [48.8566, 2.3522]
+  }
 
   const initialCenter = useRef<[number, number]>(location ? [location.lat, location.lng] : [48.8566, 2.3522]);
 

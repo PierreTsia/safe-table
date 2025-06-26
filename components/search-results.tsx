@@ -1,7 +1,6 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { searchInspections, InspectionDisplay } from '@/lib/supabase'
 import { InspectionCard } from '@/components/search/inspection-card'
 import { SearchControls } from '@/components/search/search-controls'
@@ -9,70 +8,43 @@ import { SearchPagination } from '@/components/search/search-pagination'
 import { SearchSkeleton } from '@/components/search/search-skeleton'
 
 interface SearchResultsProps {
-  initialQuery: string
+  results: InspectionDisplay[];
+  totalCount: number;
+  pageSize: number;
+  currentPage: number;
+  totalPages: number;
+  loading: boolean;
+  isFetching: boolean;
+  error: unknown;
+  initialQuery: string;
+  sortBy: 'inspectionDate' | 'businessName' | 'evaluationCode';
+  sortOrder: 'asc' | 'desc';
+  businessType?: string;
+  onPageSizeChange: (newPageSize: number) => void;
+  onSortChange: (sortBy: 'inspectionDate' | 'businessName' | 'evaluationCode', sortOrder: 'asc' | 'desc') => void;
+  onBusinessTypeChange: (businessType: string | undefined) => void;
+  onPageChange: (page: number) => void;
 }
 
-function useSearchResults(query: string, page: number, pageSize: number, sortBy: string, sortOrder: string, businessType?: string) {
-  return useQuery({
-    queryKey: ['search', query, page, pageSize, sortBy, sortOrder, businessType],
-    queryFn: () => searchInspections(query, page, pageSize, sortBy as 'inspectionDate' | 'businessName' | 'evaluationCode', sortOrder as 'asc' | 'desc', businessType),
-    enabled: !!query,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-  })
-}
-
-export function SearchResults({ initialQuery }: SearchResultsProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+export function SearchResults({
+  results,
+  totalCount,
+  pageSize,
+  currentPage,
+  totalPages,
+  loading,
+  isFetching,
+  error,
+  initialQuery,
+  sortBy,
+  sortOrder,
+  businessType,
+  onPageSizeChange,
+  onSortChange,
+  onBusinessTypeChange,
+  onPageChange,
+}: SearchResultsProps) {
   const queryClient = useQueryClient()
-  
-  const currentPage = parseInt(searchParams.get('page') || '1', 10)
-  const pageSize = parseInt(searchParams.get('size') || '12', 10)
-  const sortBy = (searchParams.get('sort') as 'inspectionDate' | 'businessName' | 'evaluationCode') || 'inspectionDate'
-  const sortOrder = (searchParams.get('order') as 'asc' | 'desc') || 'desc'
-  const businessType = searchParams.get('type') || undefined
-  
-  const { data, isLoading, error, isPending, isFetching } = useSearchResults(
-    initialQuery, 
-    currentPage, 
-    pageSize, 
-    sortBy, 
-    sortOrder,
-    businessType
-  )
-
-  const results = data?.data || []
-  const totalCount = data?.count || 0
-  const totalPages = Math.ceil(totalCount / pageSize)
-
-  const updateUrl = (params: Record<string, string>) => {
-    const newSearchParams = new URLSearchParams(searchParams)
-    Object.entries(params).forEach(([key, value]) => {
-      if (value) {
-        newSearchParams.set(key, value)
-      } else {
-        newSearchParams.delete(key)
-      }
-    })
-    router.push(`/search?${newSearchParams.toString()}`)
-  }
-
-  const handleSortChange = (newSortBy: typeof sortBy, newSortOrder: typeof sortOrder) => {
-    updateUrl({ sort: newSortBy, order: newSortOrder, page: '1' })
-  }
-
-  const handlePageChange = (page: number) => {
-    updateUrl({ page: page.toString() })
-  }
-
-  const handlePageSizeChange = (newPageSize: number) => {
-    updateUrl({ size: newPageSize.toString(), page: '1' })
-  }
-
-  const handleBusinessTypeChange = (newBusinessType: string | undefined) => {
-    updateUrl({ type: newBusinessType || '', page: '1' })
-  }
 
   const handleInspectionClick = (inspection: InspectionDisplay) => {
     // TODO: Navigate to individual inspection page
@@ -99,7 +71,7 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
     setTimeout(prefetchAdjacentPages, 100) // Small delay to avoid blocking
   }
 
-  if (isLoading || isPending) {
+  if (loading) {
     return <SearchSkeleton pageSize={pageSize} />
   }
 
@@ -107,7 +79,7 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
     return (
       <div className="text-center py-8">
         <p className="text-lg text-red-500">
-          Erreur lors de la recherche: {error.message}
+          Erreur lors de la recherche: {error instanceof Error ? error.message : String(error)}
         </p>
       </div>
     )
@@ -137,9 +109,9 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
         sortBy={sortBy}
         sortOrder={sortOrder}
         businessType={businessType}
-        onPageSizeChange={handlePageSizeChange}
-        onSortChange={handleSortChange}
-        onBusinessTypeChange={handleBusinessTypeChange}
+        onPageSizeChange={onPageSizeChange}
+        onSortChange={onSortChange}
+        onBusinessTypeChange={onBusinessTypeChange}
       />
 
       {/* Results grid with loading indicator */}
@@ -169,7 +141,7 @@ export function SearchResults({ initialQuery }: SearchResultsProps) {
       <SearchPagination
         currentPage={currentPage}
         totalPages={totalPages}
-        onPageChange={handlePageChange}
+        onPageChange={onPageChange}
       />
     </div>
   )

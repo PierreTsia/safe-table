@@ -8,6 +8,8 @@ import dynamic from 'next/dynamic'
 const MapView = dynamic(() => import('@/components/map/map-view').then(mod => mod.MapView), { ssr: false })
 import { use, useEffect, useState } from 'react'
 import { Map, List } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { searchInspections } from '@/lib/supabase'
 
 interface SearchPageProps {
   searchParams: Promise<{ q?: string; view?: string }>
@@ -21,6 +23,67 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
   const router = useRouter()
   const searchParamsClient = useSearchParams()
   const [activeTab, setActiveTab] = useState(initialView)
+
+  // --- Search state from URL ---
+  const currentPage = parseInt(searchParamsClient.get('page') || '1', 10)
+  const pageSize = parseInt(searchParamsClient.get('size') || '12', 10)
+  const sortBy = (searchParamsClient.get('sort') as 'inspectionDate' | 'businessName' | 'evaluationCode') || 'inspectionDate'
+  const sortOrder = (searchParamsClient.get('order') as 'asc' | 'desc') || 'desc'
+  const businessType = searchParamsClient.get('type') || undefined
+
+  // --- Fetch results ---
+  function useSearchResults(query: string, page: number, pageSize: number, sortBy: string, sortOrder: string, businessType?: string) {
+    return useQuery({
+      queryKey: ['search', query, page, pageSize, sortBy, sortOrder, businessType],
+      queryFn: () => searchInspections(query, page, pageSize, sortBy as 'inspectionDate' | 'businessName' | 'evaluationCode', sortOrder as 'asc' | 'desc', businessType),
+      enabled: !!query,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+    })
+  }
+
+  const { data, isLoading, error, isPending, isFetching } = useSearchResults(
+    query || '',
+    currentPage,
+    pageSize,
+    sortBy,
+    sortOrder,
+    businessType
+  )
+
+  const loading = isLoading || isPending;
+  const results = data?.data || []
+  const totalCount = data?.count || 0
+  const totalPages = Math.ceil(totalCount / pageSize)
+
+  // --- Handlers to update URL ---
+  const updateUrl = (params: Record<string, string>) => {
+    const newSearchParams = new URLSearchParams(searchParamsClient)
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) {
+        newSearchParams.set(key, value)
+      } else {
+        newSearchParams.delete(key)
+      }
+    })
+    router.push(`/search?${newSearchParams.toString()}`)
+  }
+
+  const handleSortChange = (newSortBy: typeof sortBy, newSortOrder: typeof sortOrder) => {
+    updateUrl({ sort: newSortBy, order: newSortOrder, page: '1' })
+  }
+
+  const handlePageChange = (page: number) => {
+    updateUrl({ page: page.toString() })
+  }
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    updateUrl({ size: newPageSize.toString(), page: '1' })
+  }
+
+  const handleBusinessTypeChange = (newBusinessType: string | undefined) => {
+    updateUrl({ type: newBusinessType || '', page: '1' })
+  }
 
   // Sync tab state with URL on mount
   useEffect(() => {
@@ -63,12 +126,28 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
         </TabsList>
 
         <TabsContent value="text" className="mt-0">
-          <SearchResults initialQuery={query} />
+          <SearchResults
+            results={results}
+            totalCount={totalCount}
+            pageSize={pageSize}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            loading={loading}
+            isFetching={isFetching}
+            error={error}
+            initialQuery={query}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            businessType={businessType}
+            onPageSizeChange={handlePageSizeChange}
+            onSortChange={handleSortChange}
+            onBusinessTypeChange={handleBusinessTypeChange}
+            onPageChange={handlePageChange}
+          />
         </TabsContent>
 
         <TabsContent value="map" className="mt-0">
-          <MapView  />
-     
+          <MapView initialQuery={query}  />
         </TabsContent>
       </Tabs>
     </div>
