@@ -79,6 +79,26 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "url": "https://safe-table.vercel.app/",
+              "name": "SafeTable",
+              "description": "Transparence alimentaire en France. Explorez les résultats des contrôles officiels sanitaires du dispositif Alim'confiance.",
+              "publisher": {
+                "@type": "Organization",
+                "name": "SafeTable",
+                "url": "https://safe-table.vercel.app/"
+              },
+              "inLanguage": "fr-FR"
+            })
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

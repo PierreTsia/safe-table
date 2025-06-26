@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SafeTable
 
-## Getting Started
+Transparence alimentaire en France
 
-First, run the development server:
+[👉 Voir en ligne](https://safe-table.vercel.app/)
+
+SafeTable est une application web qui permet d'explorer les résultats des contrôles officiels sanitaires du dispositif **Alim'confiance** du Ministère de l'Agriculture et de l'Alimentation. Production, transformation et distribution alimentaire en France : prenez des décisions éclairées pour votre sécurité sanitaire.
+
+## 🚀 Fonctionnalités principales
+
+- Recherche par code postal, ville ou nom d'établissement
+- Accès aux résultats des contrôles sanitaires officiels (Alim'confiance)
+- Affichage des établissements à risque élevé
+- FAQ sur la sécurité alimentaire et la réglementation
+- Interface moderne, rapide et responsive
+
+
+## 🛠️ Stack technique
+
+- [Next.js](https://nextjs.org/) (React, App Router)
+- [Supabase](https://supabase.com/) (base de données et API)
+- [Tailwind CSS](https://tailwindcss.com/) (UI)
+- Hébergement : Vercel
+
+## ⚡ Démarrage rapide
+
+Clonez le repo, installez les dépendances et lancez le serveur de développement :
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvrez [http://localhost:3000](http://localhost:3000) pour voir l'application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🤝 Contribuer
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Les contributions sont les bienvenues ! Ouvrez une issue ou une pull request pour proposer des améliorations, corriger des bugs ou suggérer de nouvelles fonctionnalités.
 
-## Learn More
+## 📄 Licence
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Ce projet est sous licence MIT. Les données sont issues du dispositif officiel [Alim'confiance](https://agriculture.gouv.fr/alimconfiance-les-resultats-des-controles-sanitaires-accessibles-tous) et de [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/681dd0ca365bb9cabb5b484a/).
