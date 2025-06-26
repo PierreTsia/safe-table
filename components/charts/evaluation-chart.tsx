@@ -71,6 +71,7 @@ export function EvaluationChart({ data }: EvaluationChartProps) {
               dataKey="count"
               nameKey="evaluation"
               isAnimationActive={false}
+            
             >
               {groupedData.map((entry, index) => (
                 <Cell 
