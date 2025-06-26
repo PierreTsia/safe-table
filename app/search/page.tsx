@@ -160,7 +160,7 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
     activeTab === 'map' ? mapRadius : null,
     500
   )
-  console.log('mapData', mapData)
+
 
 
   useEffect(() => {
