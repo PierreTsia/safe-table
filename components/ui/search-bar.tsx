@@ -8,6 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { sendGAEvent } from '@next/third-parties/google'
 
 interface SearchBarProps {
   className?: string
@@ -23,6 +24,8 @@ export function SearchBar({ className }: SearchBarProps) {
   })
 
   const onSubmit = form.handleSubmit((data) => {
+    // Track search event in Google Analytics
+    sendGAEvent('search', 'search_performed', { search_term: data.query })
     // Navigate to search results page
     router.push(`/search?q=${encodeURIComponent(data.query)}`)
   })
