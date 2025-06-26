@@ -45,7 +45,7 @@ function FaqLink() {
     const linkText = 'https://agriculture.gouv.fr'
 
 
-   const description = `Les résultats sont consultables sur la page officielle du Ministère de l'Agriculture: ${link}`
+   const description = `Les résultats sont consultables sur la page officielle du Ministère de l'Agriculture `
   return (
     <>
       {description}
