@@ -1,15 +1,19 @@
-import { getInspectionsByEvaluationCode } from '@/lib/supabase'
+import { getInspectionsByEvaluationCode, getEvaluationStats } from '@/lib/supabase'
 import { SearchWrapper } from '@/components/search-wrapper'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FAQSection } from '@/components/faq-section'
+import { ChartsSection } from '@/components/charts/charts-section'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, Shield, Search, TrendingUp, HelpCircle } from 'lucide-react'
 
 export default async function Home() {
   try {
-    // Try to fetch high-risk inspections for the hero section
-    const highRiskInspections = await getInspectionsByEvaluationCode(4)
+    // Fetch data for charts and high-risk inspections
+    const [highRiskInspections, evaluationStats] = await Promise.all([
+      getInspectionsByEvaluationCode(4),
+      getEvaluationStats()
+    ])
     
     return (
       <main className="min-h-screen">
@@ -154,6 +158,9 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        {/* Charts Section */}
+        <ChartsSection evaluationStats={evaluationStats} />
 
         <FAQSection />
 

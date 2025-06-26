@@ -18,8 +18,8 @@
 - [x] Add structured data (JSON-LD) for better search results
 
 ### 3. Google Analytics Setup
-- [ ] Create Google Analytics 4 property
-- [ ] Add tracking code to the app
+- [x] Create Google Analytics 4 property
+- [x] Add tracking code to the app
 - [ ] Set up conversion goals (searches, clicks on restaurant cards)
 - [ ] Configure event tracking for user interactions
 - [ ] Set up custom dimensions for better insights

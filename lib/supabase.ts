@@ -146,4 +146,114 @@ export const findInspectionsWithinRadius = async (
 
   if (error) throw error
   return data
+}
+
+// Chart data functions
+export type BusinessTypeStats = {
+  businessType: string
+  count: number
+  percentage: number
+}
+
+export type RegionStats = {
+  region: string
+  count: number
+  percentage: number
+}
+
+export type EvaluationStats = {
+  evaluation: string
+  count: number
+  percentage: number
+}
+
+// Get business type statistics for charts
+export const getBusinessTypeStats = async (): Promise<BusinessTypeStats[]> => {
+  const { data, error } = await supabase
+    .from('inspections')
+    .select('businessType')
+    .not('businessType', 'is', null)
+
+  if (error) throw error
+
+  // Group and count business types
+  const businessTypeCounts = data.reduce((acc, inspection) => {
+    const type = inspection.businessType || 'Non spécifié'
+    acc[type] = (acc[type] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const total = Object.values(businessTypeCounts).reduce((sum, count) => sum + count, 0)
+
+  // Convert to array and calculate percentages
+  const stats = Object.entries(businessTypeCounts)
+    .map(([businessType, count]) => ({
+      businessType,
+      count,
+      percentage: Math.round((count / total) * 100 * 100) / 100
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10)
+
+  return stats
+}
+
+// Get region statistics for charts
+export const getRegionStats = async (): Promise<RegionStats[]> => {
+  const { data, error } = await supabase
+    .from('inspections')
+    .select('region')
+    .not('region', 'is', null)
+
+  if (error) throw error
+
+  // Group and count regions
+  const regionCounts = data.reduce((acc, inspection) => {
+    const region = inspection.region || 'Non spécifié'
+    acc[region] = (acc[region] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const total = Object.values(regionCounts).reduce((sum, count) => sum + count, 0)
+
+  // Convert to array and calculate percentages
+  const stats = Object.entries(regionCounts)
+    .map(([region, count]) => ({
+      region,
+      count,
+      percentage: Math.round((count / total) * 100 * 100) / 100
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10)
+
+  return stats
+}
+
+// Get evaluation statistics for charts
+export const getEvaluationStats = async (): Promise<EvaluationStats[]> => {
+  const { data, error } = await supabase
+    .from('inspections')
+    .select('evaluationCode')
+
+  if (error) throw error
+
+  // Group and count evaluations
+  const evaluationCounts = data.reduce((acc, inspection) => {
+    const evaluation = getEvaluationText(inspection.evaluationCode as 1 | 2 | 3 | 4)
+    acc[evaluation] = (acc[evaluation] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const total = Object.values(evaluationCounts).reduce((sum, count) => sum + count, 0)
+
+  // Convert to array and calculate percentages
+  const stats = Object.entries(evaluationCounts)
+    .map(([evaluation, count]) => ({
+      evaluation,
+      count,
+      percentage: Math.round((count / total) * 100 * 100) / 100
+    }))
+    .sort((a, b) => b.count - a.count)
+
+  return stats
 } 
