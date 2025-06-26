@@ -8,31 +8,15 @@ interface EvaluationChartProps {
   data: EvaluationStats[]
 }
 
-function groupEvaluations(data: EvaluationStats[]) {
-  const tresSatisfaisant = data.find(d => d.evaluation === 'Très satisfaisant')
-  const satisfaisant = data.find(d => d.evaluation === 'Satisfaisant')
-  const aAmeliorer = data.find(d => d.evaluation === 'À améliorer')
-  const aCorriger = data.find(d => d.evaluation === 'À corriger de manière urgente')
 
-  const groupLabel = 'À améliorer ou corriger'
-  const groupCount = (aAmeliorer?.count || 0) + (aCorriger?.count || 0)
-  const groupPercentage = (aAmeliorer?.percentage || 0) + (aCorriger?.percentage || 0)
-
-  const grouped = [
-    tresSatisfaisant && { evaluation: 'Très satisfaisant', count: tresSatisfaisant.count, percentage: tresSatisfaisant.percentage },
-    satisfaisant && { evaluation: 'Satisfaisant', count: satisfaisant.count, percentage: satisfaisant.percentage },
-    (groupCount > 0) && { evaluation: groupLabel, count: groupCount, percentage: groupPercentage }
-  ].filter(Boolean) as EvaluationStats[]
-
-  return grouped
-}
-
-const COLORS = {
-  'Très satisfaisant': '#10b981',
-  'Satisfaisant': '#3b82f6', 
-  'À améliorer ou corriger': '#ef4444'
-}
-
+  const COLORS = {
+    'Très satisfaisant': '#10b981',
+    'Satisfaisant': '#3b82f6', 
+    'A améliorer': '#f59e0b',
+    'A corriger de manière urgente': '#ef4444',
+    'À améliorer': '#f59e0b', // keep both, just in case
+    'À corriger de manière urgente': '#ef4444'
+  }
 function renderCustomLegend({ payload }: { payload?: readonly LegendPayload[] }) {
   return (
     <ul className="flex flex-col gap-2 mt-6 text-sm">
@@ -51,7 +35,7 @@ function renderCustomLegend({ payload }: { payload?: readonly LegendPayload[] })
 }
 
 export function EvaluationChart({ data }: EvaluationChartProps) {
-  const groupedData = groupEvaluations(data)
+  const groupedData =  data// groupEvaluations(data)
 
   return (
     <Card className="w-full">

@@ -21,6 +21,8 @@ export type Inspection = Database['public']['Tables']['inspections']['Row']
 export type InspectionInsert = Database['public']['Tables']['inspections']['Insert']
 export type InspectionUpdate = Database['public']['Tables']['inspections']['Update']
 
+
+
 // Shared simplified inspection type for UI components
 export type InspectionDisplay = Pick<Inspection, 
   'id' | 'businessName' | 'businessType' | 'address' | 'city' | 'evaluationCode' | 'inspectionDate'
@@ -231,29 +233,19 @@ export const getRegionStats = async (): Promise<RegionStats[]> => {
 
 // Get evaluation statistics for charts
 export const getEvaluationStats = async (): Promise<EvaluationStats[]> => {
-  const { data, error } = await supabase
-    .from('inspections')
-    .select('evaluationCode')
+  const { data, error } = await supabase.from('inspection_evaluation_stats').select('*')
 
+  console.log(data)
   if (error) throw error
 
-  // Group and count evaluations
-  const evaluationCounts = data.reduce((acc, inspection) => {
-    const evaluation = getEvaluationText(inspection.evaluationCode as 1 | 2 | 3 | 4)
-    acc[evaluation] = (acc[evaluation] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-
-  const total = Object.values(evaluationCounts).reduce((sum, count) => sum + count, 0)
-
-  // Convert to array and calculate percentages
-  const stats = Object.entries(evaluationCounts)
-    .map(([evaluation, count]) => ({
-      evaluation,
-      count,
-      percentage: Math.round((count / total) * 100 * 100) / 100
+  const result = (data ?? [])
+    .filter(row => row.evaluation)
+    .map(row => ({
+      evaluation: row.evaluation!,
+      count: row.count ?? 0,
+      percentage: row.percentage ?? 0
     }))
-    .sort((a, b) => b.count - a.count)
 
-  return stats
+  console.log(result)
+  return result
 } 

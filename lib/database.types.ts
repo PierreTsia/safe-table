@@ -92,7 +92,14 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      inspection_evaluation_stats: {
+        Row: {
+          count: number | null
+          evaluation: string | null
+          percentage: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       find_inspections_within_radius: {
