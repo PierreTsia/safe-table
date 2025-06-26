@@ -21,6 +21,7 @@ export interface InspectionResult {
   longitude: number;
   evaluationCode: number;
   businessName: string;
+  businessType: string;
   address: string;
   city: string;
   postalCode: string;
@@ -159,6 +160,7 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
     activeTab === 'map' ? mapRadius : null,
     500
   )
+  console.log('mapData', mapData)
 
 
   useEffect(() => {
@@ -226,6 +228,18 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
     setActiveTab(value)
     const newSearchParams = new URLSearchParams(searchParamsClient)
     newSearchParams.set('view', value)
+    if (
+      value === 'map' &&
+      !newSearchParams.get('lat') &&
+      !newSearchParams.get('lng') &&
+      results.length > 0 &&
+      typeof results[0].latitude === 'number' &&
+      typeof results[0].longitude === 'number'
+    ) {
+      newSearchParams.set('lat', results[0].latitude.toFixed(6));
+      newSearchParams.set('lng', results[0].longitude.toFixed(6));
+      newSearchParams.set('radius', '2'); // or whatever default you want
+    }
     router.push(`/search?${newSearchParams.toString()}`, { scroll: false })
   }
 

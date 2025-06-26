@@ -82,7 +82,6 @@ export function MapView({
   const [hasMounted, setHasMounted] = useState(false);
   const prevCenter = useRef<[number, number] | null>(null);
 
-  console.log('results', results)
 
   useEffect(() => {
     setHasMounted(true);
@@ -117,7 +116,22 @@ export function MapView({
     const map = mapRef.current;
     const handleMoveEnd = () => {
       const c = map.getCenter();
-      onMoveEnd([c.lat, c.lng], map.getZoom());
+      const newCenter: [number, number] = [c.lat, c.lng];
+      
+      // Only trigger search if the move is significant (more than ~50 meters)
+      if (prevCenter.current) {
+        const distance = Math.sqrt(
+          Math.pow(newCenter[0] - prevCenter.current[0], 2) + 
+          Math.pow(newCenter[1] - prevCenter.current[1], 2)
+        );
+        // 0.0005 degrees ≈ 50 meters at this latitude
+        if (distance < 0.0005) {
+          return; // Ignore tiny moves
+        }
+      }
+      
+      onMoveEnd(newCenter, map.getZoom());
+      prevCenter.current = newCenter;
     };
     map.on('moveend', handleMoveEnd);
     return () => {
@@ -230,16 +244,45 @@ export function MapView({
                 key={item.id}
                 position={[item.latitude, item.longitude]}
                 icon={getEvaluationIcon(item.evaluationCode)}
-              >
-                <Popup>
-                  <div className="text-sm">
-                    <strong>{item.businessName}</strong><br />
-                    {item.address}<br />
-                    {item.city} {item.postalCode}<br />
-                    {item.evaluation && (<span>Évaluation: {item.evaluation}</span>)}
-                  </div>
-                </Popup>
-              </Marker>
+                eventHandlers={{
+                  mouseover: (e) => {
+                    if (!('ontouchstart' in window)) { // Desktop only
+                      const marker = e.target;
+                      const popupContent = `
+                        <div class="text-sm">
+                          <strong>${item.businessName}</strong><br />
+                          ${item.businessType}<br/>
+                          ${item.address}<br />
+                          ${item.city} ${item.postalCode}<br />
+                          ${item.evaluation ? `<span>Évaluation: ${item.evaluation}</span>` : ''}
+                        </div>
+                      `;
+                      marker.bindPopup(popupContent, { autoPan: false }).openPopup();
+                    }
+                  },
+                  mouseout: (e) => {
+                    if (!('ontouchstart' in window)) {
+                      const marker = e.target;
+                      marker.closePopup();
+                    }
+                  },
+                  click: (e) => {
+                    if ('ontouchstart' in window) { // Mobile only
+                      const marker = e.target;
+                      const popupContent = `
+                        <div class="text-sm">
+                          <strong>${item.businessName}</strong><br />
+                          ${item.businessType}<br/>
+                          ${item.address}<br />
+                          ${item.city} ${item.postalCode}<br />
+                          ${item.evaluation ? `<span>Évaluation: ${item.evaluation}</span>` : ''}
+                        </div>
+                      `;
+                      marker.bindPopup(popupContent, { autoPan: false }).openPopup();
+                    }
+                  }
+                }}
+              />
             ))
           }
 
