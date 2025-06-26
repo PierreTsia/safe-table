@@ -4,6 +4,7 @@ import "./globals.css";
 import { QueryProvider } from '@/components/providers/query-provider'
 import { Footer } from '@/components/ui/footer'
 import { Analytics } from "@vercel/analytics/next"
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -98,17 +99,6 @@ export default function RootLayout({
             })
           }}
         />
-
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-D201S25KXZ');
-            `,
-          }}
-        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
@@ -121,6 +111,7 @@ export default function RootLayout({
             <Footer />
           </div>
           <Analytics />
+          <GoogleAnalytics gaId="G-D201S25KXZ" />
         </QueryProvider>
       </body>
     </html>
