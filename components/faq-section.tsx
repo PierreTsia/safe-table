@@ -1,22 +1,67 @@
+ 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { HelpCircle } from 'lucide-react'
 
+const HygieneLevels = () => {
+
+    const description = 'Il existe quatre niveaux d\'hygiène :'
+
+    const levels = [
+        {
+            level: 'Très satisfaisant',
+            color: 'text-green-500',
+            description: 'Aucune non-conformité, ou uniquement des non-conformités mineures.'
+        },
+        {
+            level: 'Satisfaisant',
+            color: 'text-yellow-500',
+            description: 'Non-conformités ne justifiant pas de mesures de police administrative, mais nécessitant un rappel de la réglementation.'
+        },
+        {
+            level: 'À améliorer',
+            color: 'text-orange-500',
+            description: 'Mise en demeure de procéder à des mesures correctives, suivie d\'un nouveau contrôle.'
+        },
+        {
+            level: 'À corriger de manière urgente',
+            color: 'text-red-500',
+            description: 'Non-conformités susceptibles de mettre en danger la santé du consommateur, pouvant entraîner une fermeture administrative ou un retrait/suspension d\'agrément.'
+        }
+    ]
+  return (
+    <>
+      {description}<br />
+     {levels.map((level) => (
+        <div key={level.level}>
+            <strong className={level.color}>{level.level}</strong> : {level.description}<br />
+        </div>
+     ))}
+    </>
+  )
+}
+
+function FaqLink() {
+    const link = 'https://agriculture.gouv.fr/alimconfiance-les-resultats-des-controles-sanitaires-accessibles-tous'
+    const linkText = 'https://agriculture.gouv.fr'
+
+
+   const description = `Les résultats sont consultables sur la page officielle du Ministère de l'Agriculture: ${link}`
+  return (
+    <>
+      {description}
+      <a href={link} target="_blank" rel="noopener noreferrer" className="text-primary underline">{linkText}</a>
+    </>
+  )
+}
+
 const FAQS = [
   {
-    question: "Qu’est-ce que le dispositif « Alim&apos;confiance » ?",
-    answer: `Depuis le 3 avril 2017, les consommateurs ont accès aux résultats des contrôles sanitaires réalisés dans tous les établissements de la chaîne alimentaire (restaurants, cantines, abattoirs, commerces, etc.). Ce dispositif vise à renforcer la transparence et la confiance des citoyens dans la sécurité sanitaire des aliments.`
+    question: "Qu'est-ce que le dispositif « Alim'confiance » ?",
+    answer: "Depuis le 3 avril 2017, les consommateurs ont accès aux résultats des contrôles sanitaires réalisés dans tous les établissements de la chaîne alimentaire (restaurants, cantines, abattoirs, commerces, etc.). Ce dispositif vise à renforcer la transparence et la confiance des citoyens dans la sécurité sanitaire des aliments."
   },
   {
-    question: "Quels sont les niveaux d&apos;hygiène affichés ?",
-    answer: (
-      <>
-        Il existe quatre niveaux d&apos;hygiène :<br/>
-        <strong className="text-green-500">Très satisfaisant</strong> : aucune non-conformité, ou uniquement des non-conformités mineures.<br/>
-        <strong className="text-yellow-500">Satisfaisant</strong> : non-conformités ne justifiant pas de mesures de police administrative, mais nécessitant un rappel de la réglementation.<br/>
-        <strong className="text-orange-500">À améliorer</strong> : mise en demeure de procéder à des mesures correctives, suivie d&apos;un nouveau contrôle.<br/>
-        <strong className="text-red-500">À corriger de manière urgente</strong> : non-conformités susceptibles de mettre en danger la santé du consommateur, pouvant entraîner une fermeture administrative ou un retrait/suspension d&apos;agrément.
-      </>
-    )
+    question: "Quels sont les niveaux d'hygiène affichés ?",
+    answer: HygieneLevels
   },
   {
     question: "Quels établissements sont concernés par la publication des résultats ?",
@@ -24,38 +69,35 @@ const FAQS = [
   },
   {
     question: "Comment les résultats sont-ils affichés ?",
-    answer: "Les établissements de remise directe (restaurants, métiers de bouche, distributeurs) et de restauration collective peuvent afficher sur leur devanture le niveau d&apos;hygiène obtenu. Une affichette officielle leur est transmise par les services départementaux de l&apos;État."
+    answer: "Les établissements de remise directe (restaurants, métiers de bouche, distributeurs) et de restauration collective peuvent afficher sur leur devanture le niveau d'hygiène obtenu. Une affichette officielle leur est transmise par les services départementaux de l'État."
   },
   {
     question: "Pourquoi ce dispositif a-t-il été mis en place ?",
-    answer: "La publication des résultats des contrôles sanitaires répond à une attente légitime des citoyens et participe à l&apos;amélioration de la confiance du consommateur. Elle s&apos;inscrit dans une démarche de transparence de l&apos;action de l&apos;État, prévue par la loi d&apos;Avenir pour l&apos;agriculture, l&apos;alimentation et la forêt du 13 octobre 2014."
+    answer: "La publication des résultats des contrôles sanitaires répond à une attente légitime des citoyens et participe à l'amélioration de la confiance du consommateur. Elle s'inscrit dans une démarche de transparence de l'action de l'État, prévue par la loi d'Avenir pour l'agriculture, l'alimentation et la forêt du 13 octobre 2014."
   },
   {
     question: "Ce système existe-t-il ailleurs en Europe ?",
-    answer: "Oui, plusieurs pays européens (Royaume-Uni, Pays-Bas, Belgique, Irlande, Danemark, Finlande, Lituanie, Norvège) publient déjà les résultats de leurs contrôles sanitaires. D&apos;autres, comme l&apos;Allemagne et la Suède, projettent de le faire."
+    answer: "Oui, plusieurs pays européens (Royaume-Uni, Pays-Bas, Belgique, Irlande, Danemark, Finlande, Lituanie, Norvège) publient déjà les résultats de leurs contrôles sanitaires. D'autres, comme l'Allemagne et la Suède, projettent de le faire."
   },
   {
     question: "Où puis-je consulter les résultats ?",
-    answer: (
-      <>
-        Les résultats sont consultables sur la page officielle du Ministère de l&apos;Agriculture :<br/>
-        <a href="https://agriculture.gouv.fr/alimconfiance-les-resultats-des-controles-sanitaires-accessibles-tous" target="_blank" rel="noopener noreferrer" className="text-primary underline">https://agriculture.gouv.fr/alimconfiance-les-resultats-des-controles-sanitaires-accessibles-tous</a>
-      </>
-    )
+    answer: FaqLink
   }
 ]
 
 export function FAQSection() {
+    const title = 'Questions Fréquentes'
+    const description = 'Tout ce que vous devez savoir sur le dispositif Alim\'confiance et la publication des contrôles sanitaires'
   return (
     <section id="faq" className="py-10 pb-16 bg-white dark:bg-gray-900">
       <div className="container mx-auto px-8">
         <div className="text-center mb-16">
           <div className="flex items-center justify-center gap-2 mb-4">
             <HelpCircle className="w-6 h-6 text-primary" />
-            <h2 className="text-3xl md:text-4xl font-bold">Questions Fréquentes</h2>
+            <h2 className="text-3xl md:text-4xl font-bold">{title}</h2>
           </div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Tout ce que vous devez savoir sur le dispositif Alim&apos;confiance et la publication des contrôles sanitaires
+            {description}
           </p>
         </div>
         <div className="max-w-3xl mx-auto mb-8">
@@ -66,7 +108,11 @@ export function FAQSection() {
                   <span className="text-lg font-semibold">{faq.question}</span>
                 </AccordionTrigger>
                 <AccordionContent className="pb-6">
-                  <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
+                  {typeof faq.answer === 'string' ? (
+                    <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
+                  ) : (
+                    <div className="text-muted-foreground leading-relaxed">{faq.answer()}</div>
+                  )}
                 </AccordionContent>
               </AccordionItem>
             ))}
