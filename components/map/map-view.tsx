@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { AlertTriangle } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { LocateIcon, MapPinIcon } from 'lucide-react'
+import { LocateIcon } from 'lucide-react'
 import type { Map as LeafletMap } from 'leaflet'
 import type { InspectionResult } from '@/app/search/page'
 
@@ -73,7 +73,6 @@ export function MapView({
   loading,
   truncationWarning,
   onRadiusChange,
-  onSearchAtCenter,
   onMoveEnd,
   onRecenter,
   userLocation,

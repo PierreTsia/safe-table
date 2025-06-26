@@ -2,7 +2,9 @@ import { getInspectionsByEvaluationCode } from '@/lib/supabase'
 import { SearchWrapper } from '@/components/search-wrapper'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertTriangle, Shield, Search, TrendingUp } from 'lucide-react'
+import { FAQSection } from '@/components/faq-section'
+import { Button } from '@/components/ui/button'
+import { AlertTriangle, Shield, Search, TrendingUp, HelpCircle } from 'lucide-react'
 
 export default async function Home() {
   try {
@@ -26,7 +28,7 @@ export default async function Home() {
               </div>
 
               {/* Value Proposition */}
-              <div className="space-y-6 max-w-2xl mx-auto">
+              <div className="space-y-2 max-w-2xl mx-auto">
                 <p className="text-lg text-foreground/80 leading-relaxed">
                   Explorez les résultats des contrôles officiels sanitaires du dispositif{' '}
                   <a 
@@ -41,9 +43,18 @@ export default async function Home() {
                   Production, transformation et distribution alimentaire en France : 
                   prenez des décisions éclairées pour votre sécurité sanitaire.
                 </p>
+
+                {/* FAQ Anchor Link */}
+                <div className="flex justify-center">
+                  <Button asChild variant="link" className="gap-1 text-muted-foreground hover:text-primary text-sm px-0">
+                    <a href="#faq" aria-label="Aller à la FAQ">
+                      <HelpCircle className="w-4 h-4 mr-1" /> FAQ
+                    </a>
+                  </Button>
+                </div>
                 
                 {/* Search CTA */}
-                <div className="pt-4">
+                <div className="flex justify-center">
                   <SearchWrapper />
                 </div>
               </div>
@@ -143,6 +154,8 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        <FAQSection />
 
         {/* Recent High-Risk Inspections */}
         <section className="py-20 bg-gray-50 dark:bg-gray-800">
