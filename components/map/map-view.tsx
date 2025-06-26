@@ -3,12 +3,13 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useState, useRef } from 'react'
-import { searchInspections } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { AlertTriangle } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { LocateIcon, MapPinIcon } from 'lucide-react'
+import type { Map as LeafletMap } from 'leaflet'
+import type { InspectionResult } from '@/app/search/page'
 
 // Fix for default markers in React Leaflet
 import L from 'leaflet'
@@ -39,43 +40,6 @@ function getEvaluationIcon(code: number) {
   })
 }
 
-// Custom hook for geolocation
-function useGeolocation() {
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!navigator.geolocation) {
-      setError('Geolocation is not supported by this browser')
-      setLoading(false)
-      return
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        })
-        setLoading(false)
-      },
-      (error) => {
-        console.log('Geolocation error:', error.message)
-        setError(error.message)
-        setLoading(false)
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 300000, // 5 minutes
-      }
-    )
-  }, [])
-
-  return { location, loading, error }
-}
-
 // Component to update map center and zoom when location changes
 function MapUpdater({ center, zoom }: { center: [number, number], zoom: number }) {
   const map = useMap()
@@ -87,29 +51,57 @@ function MapUpdater({ center, zoom }: { center: [number, number], zoom: number }
   return null
 }
 
-interface InspectionResult {
-  id: number;
-  latitude: number;
-  longitude: number;
-  evaluationCode: number;
-  businessName: string;
-  address: string;
-  city: string;
-  postalCode: string;
-  evaluation?: string;
-  // add other fields as needed
+
+
+interface MapViewProps {
+  results: InspectionResult[];
+  center: [number, number];
+  radius: number;
+  loading: boolean;
+  truncationWarning: boolean;
+  onRadiusChange: (radius: number) => void;
+  onSearchAtCenter: (center: [number, number], radius: number) => void;
+  onMoveEnd: (center: [number, number], zoom: number) => void;
+  onRecenter: () => void;
+  userLocation?: { lat: number; lng: number } | null;
 }
 
-export function MapView({ initialQuery }: { initialQuery: string }) {
-  const { location, loading, error } = useGeolocation()
-  // Default to Paris if no location available
-  // Radius state (capped)
-  const [radius, setRadius] = useState(5) // default 5km
-  const MAX_RADIUS = 10
-  // Truncation warning state
-  const [truncationWarning, setTruncationWarning] = useState(false)
-  // Results state
-  const [results, setResults] = useState<InspectionResult[]>([])
+export function MapView({
+  results,
+  center,
+  radius,
+  loading,
+  truncationWarning,
+  onRadiusChange,
+  onSearchAtCenter,
+  onMoveEnd,
+  onRecenter,
+  userLocation,
+}: MapViewProps) {
+  const mapRef = useRef<LeafletMap | null>(null);
+  const [hasMounted, setHasMounted] = useState(false);
+  const prevCenter = useRef<[number, number] | null>(null);
+
+  console.log('results', results)
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  // Recenter map when center prop changes
+  useEffect(() => {
+    if (
+      mapRef.current &&
+      (!prevCenter.current ||
+        prevCenter.current[0] !== center[0] ||
+        prevCenter.current[1] !== center[1])
+    ) {
+      setTimeout(() => {
+        mapRef.current!.setView(center, mapRef.current!.getZoom());
+        prevCenter.current = center;
+      }, 0);
+    }
+  }, [center]);
 
   // Ensure map renders properly in Next.js
   useEffect(() => {
@@ -119,80 +111,26 @@ export function MapView({ initialQuery }: { initialQuery: string }) {
     return () => clearTimeout(timer)
   }, [])
 
-  const mapRef = useRef(null)
-
-  const getInitialCenter = () => {
-    if (initialQuery) {
-      return [48.8566, 2.3522] // todo: get initial center from initialQuery
-    }
-    return location ? [location.lat, location.lng] : [48.8566, 2.3522]
-  }
-
-  const initialCenter = useRef<[number, number]>(location ? [location.lat, location.lng] : [48.8566, 2.3522]);
-
-  const [hasMounted, setHasMounted] = useState(false);
-
+  // Listen for map move events
   useEffect(() => {
-    setHasMounted(true);
-  }, []);
+    if (!mapRef.current) return;
+    const map = mapRef.current;
+    const handleMoveEnd = () => {
+      const c = map.getCenter();
+      onMoveEnd([c.lat, c.lng], map.getZoom());
+    };
+    map.on('moveend', handleMoveEnd);
+    return () => {
+      map.off('moveend', handleMoveEnd);
+    };
+  }, [onMoveEnd]);
 
-  async function handleTestSpatialSearch() {
-    let lat: number, lng: number;
-    if (mapRef.current) {
-      // @ts-expect-error Leaflet types are not properly defined
-      const center = mapRef.current.getCenter();
-      lat = center.lat;
-      lng = center.lng;
-    } else if (location) {
-      lat = location.lat;
-      lng = location.lng;
-    } else {
-      lat = 48.8566;
-      lng = 2.3522;
-    }
-    const result = await searchInspections('', 1, 500, 'inspectionDate', 'desc', undefined, { lat, lng, radius })
-    const results = result.data.map(item => ({
-      id: item.id,
-      latitude: item.latitude!,
-      longitude: item.longitude!,
-      evaluationCode: item.evaluationCode,
-      businessName: item.businessName,
-      address: item.address,
-      city: item.city,
-      postalCode: item.postalCode,
-      evaluation: item.evaluation,
-    }))
-    setResults(results)
-    setTruncationWarning(result.data.length === 500)
-    // Fit bounds to results
-    if (mapRef.current && result.data.length > 0) {
-      const group = L.featureGroup(
-        result.data.map(item => L.marker([item.latitude!, item.longitude!]))
-      );
-            // @ts-expect-error Leaflet types are not properly defined
-      mapRef.current.fitBounds(group.getBounds(), { maxZoom: 16, padding: [40, 40] });
-    }
-  }
-
-  function handleRecenterToUser() {
-    if (location && mapRef.current) {
-      // @ts-expect-error Leaflet types
-      mapRef.current.setView([location.lat, location.lng], 16);
-    }
-  }
+  const MAX_RADIUS = 10;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 ">
       {/* Truncation warning */}
-      {truncationWarning && (
-        <Alert variant="default" className="mb-2 text-yellow-500 bg-yellow-500/10 border-yellow-500">
-          <AlertTriangle className="h-5 w-5" />
-          <AlertTitle>Affichage limité</AlertTitle>
-          <AlertDescription className="text-yellow-500">
-            Affichage limité aux 500 premiers résultats. Veuillez réduire le rayon ou affiner votre recherche.
-          </AlertDescription>
-        </Alert>
-      )}
+     
       {/* Radius slider */}
       <div className="flex items-center gap-4">
         <label htmlFor="radius-slider" className="text-sm font-medium">Rayon de recherche :</label>
@@ -203,39 +141,32 @@ export function MapView({ initialQuery }: { initialQuery: string }) {
           max={MAX_RADIUS}
           step={0.1}
           value={radius}
-          onChange={e => setRadius(Number(e.target.value))}
+          onChange={e => onRadiusChange(Number(e.target.value))}
           className="w-40"
         />
         <span className="text-sm tabular-nums">{radius} km</span>
         <span className="text-xs text-muted-foreground">(min 0.1 km, max {MAX_RADIUS} km)</span>
       </div>
+
       {/* Location status */}
-      {loading && (
+      {loading ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          Localisation en cours...
+          Chargement en cours...
+        </div>
+      ) : (
+        <div className="text-sm text-muted-foreground">
+          {results.length} résultats
         </div>
       )}
+
       
-      {error && (
-        <div className="text-sm text-muted-foreground">
-          Localisation non disponible - Affichage de Paris par défaut
-        </div>
-      )}
 
-      {location && (
-        <div className="text-sm text-muted-foreground">
-          Votre position: {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
-        </div>
-      )}
-
-      <div className="flex gap-2 mb-2 flex justify-between w-full">
-        {/* Recenter to user location */}
-
+      <div className="flex gap-2 mb-2 flex justify-between w-full items-center h-24">
         {/* Search at current map center */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button size="icon" variant="default" className="bg-green-500 text-white" onClick={handleTestSpatialSearch}>
+        <Popover >
+          <PopoverTrigger asChild >
+            <Button size="icon" variant="default" className="bg-green-500 text-white" onClick={() => onSearchAtCenter(center, radius)}>
               <MapPinIcon className="w-5 h-5" />
             </Button>
           </PopoverTrigger>
@@ -243,9 +174,18 @@ export function MapView({ initialQuery }: { initialQuery: string }) {
             Lancer la recherche autour du centre de la carte
           </PopoverContent>
         </Popover>
+        {truncationWarning && (
+        <Alert variant="default" className=" max-w-4xl text-yellow-500 bg-yellow-500/10 border-yellow-500">
+          <AlertTriangle className="h-5 w-5" />
+          <AlertTitle>Affichage limité</AlertTitle>
+          <AlertDescription className="text-yellow-500">
+            Affichage limité aux 500 premiers résultats. Veuillez réduire le rayon ou affiner votre recherche.
+          </AlertDescription>
+        </Alert>
+      )}
         <Popover>
           <PopoverTrigger asChild>
-            <Button size="icon" variant="outline" onClick={handleRecenterToUser}>
+            <Button size="icon" variant="outline" onClick={onRecenter}>
               <LocateIcon className="w-5 h-5" />
             </Button>
           </PopoverTrigger>
@@ -259,8 +199,8 @@ export function MapView({ initialQuery }: { initialQuery: string }) {
       <div className="h-96 w-full rounded-lg overflow-hidden border">
         <MapContainer
           ref={mapRef}
-          center={initialCenter.current}
-          zoom={location ? 16 : 10}
+          center={center}
+          zoom={16}
           style={{ height: '100%', width: '100%' }}
           className="z-0"
         >
@@ -268,10 +208,10 @@ export function MapView({ initialQuery }: { initialQuery: string }) {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          
+
           {/* User location marker */}
-          {location && (
-            <Marker position={[location.lat, location.lng]}>
+          {userLocation && (
+            <Marker position={[userLocation.lat, userLocation.lng]}>
               <Popup>
                 <span className="text-sm">Votre position</span>
               </Popup>
@@ -303,9 +243,9 @@ export function MapView({ initialQuery }: { initialQuery: string }) {
             ))
           }
 
-          {/* Only show MapUpdater on initial mount, and only center on Paris if no user location */}
+          {/* Only show MapUpdater on initial mount */}
           {!hasMounted && (
-            <MapUpdater center={location ? [location.lat, location.lng] : [48.8566, 2.3522]} zoom={location ? 16 : 10} />
+            <MapUpdater center={center} zoom={16} />
           )}
         </MapContainer>
       </div>
